@@ -13,10 +13,7 @@ __status__ = "Testing"
 
 import time
 import bs4
-from openpyxl.workbook import Workbook
-from openpyxl.writer.excel import ExcelWriter 
-from openpyxl import cell
-import geopy
+import xlsxwriter
 import requests
     
 def show_time(time):
@@ -26,30 +23,29 @@ def show_time(time):
     print ("program runs for "+str(int(hours))+" hours, "+str(int(minutes))+" minutes, "+str(seconds)+" seconds.")
 
 def write_to_excel(allData):
-    wb = Workbook()
-    ew = ExcelWriter(workbook = wb)
-    ws = wb.create_sheet()
-    ws.title = "Event Data"
-    row = 1
+    wb = xlsxwriter.Workbook("test.xlsx")
+    ws = wb.add_worksheet('Event Data') 
+    ws.set_column("A:G",40)
+    ws.set_column("G:G",100)
+    cellFormat = wb.add_format({'text_wrap': True})
+    ws
+    row = 0
     for data in allData:
-        column = 1
+        column = 0
         for el in data:
-            ws.cell(row,column).value = el
+            ws.write(row, column, el, cellFormat)
             column += 1            
         row += 1
-    ew.save(filename=r"test.xlsx")
+    wb.close()
     return
-
 
 # get whole page data
 # return: [startDate, EndDate, Url, name, time, location, description]
 def catch_data(response):
     r = response.url
-    #print(r)
     soup = bs4.BeautifulSoup(response.content)
     pageContent = soup.find(id = "pageContent")
     allInfo = pageContent.find_all("tr")
-    #print(pageContent)
     result = []
     # deal with date:
     dateList = allInfo[1].text.split()
@@ -69,16 +65,13 @@ def catch_data(response):
     result.append(time)
     # add location:
     locationList = allInfo[3].text.split()
-    #print(locationList)
     for i in range(2):
         locationList.pop(0)
     location = " ".join(locationList)
     result.append(location)
     # add description:
     result.append(allInfo[4].text)
-    # print(dateList)
     return result
-
 
 if __name__ == '__main__':
     startTime = time.time()
@@ -92,11 +85,9 @@ if __name__ == '__main__':
         try:
             response = requests.get(pageUrl)
         except Exception as e:
-            # e is 'Connection aborted.'
             print("cannot open")
         if response.status_code == 200:
             pageData = catch_data(response)
-            #print(pageData)
             allData.append(pageData)
             print ("opening page: "+str(pageId))
             nodata = 0
@@ -106,10 +97,9 @@ if __name__ == '__main__':
         else:
             print ("Cannot open page: "+str(pageId))
         pageId += 1
-        if nodata == 20:
+        if nodata == 26:
             break
     write_to_excel(allData)
-    #print(response.status_code)
     elapsedTime = time.time() - startTime
     show_time(elapsedTime)   
     print('all finish! ')
