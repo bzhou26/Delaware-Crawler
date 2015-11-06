@@ -23,7 +23,7 @@ def show_time(time):
     print ("program runs for "+str(int(hours))+" hours, "+str(int(minutes))+" minutes, "+str(seconds)+" seconds.")
 
 def write_to_excel(allData):
-    wb = xlsxwriter.Workbook("test.xlsx")
+    wb = xlsxwriter.Workbook("all_data.xlsx")
     ws = wb.add_worksheet('Event Data') 
     ws.set_column("A:G",40)
     ws.set_column("G:G",100)
@@ -95,7 +95,7 @@ if __name__ == '__main__':
             print ("No result on page: "+str(pageId))
             nodata += 1
         else:
-            print ("Cannot open page: "+str(pageId))
+            print ("unknown problem on page: "+str(pageId))
         pageId += 1
         if nodata == 26:
             break
